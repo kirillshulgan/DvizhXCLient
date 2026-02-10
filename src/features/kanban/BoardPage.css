@@ -1,0 +1,59 @@
+.board-container {
+    display: flex;
+    overflow-x: auto;
+    height: 100vh;
+    padding: 20px;
+    background-color: #f0f2f5;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.column {
+    background-color: #ebecf0;
+    min-width: 300px;
+    max-width: 300px;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    max-height: 90%;
+}
+
+.column-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding: 0 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.card-list {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 50px; /* Чтобы можно было бросить в пустую колонку */
+}
+
+.kanban-card {
+    background-color: white;
+    border-radius: 4px;
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.kanban-card:hover {
+    background-color: #fafafa;
+}
+
+.card-title {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.card-desc {
+    font-size: 0.85em;
+    color: #555;
+}
