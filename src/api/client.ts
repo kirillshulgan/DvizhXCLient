@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Создаем инстанс. BaseURL '/api' будет работать через прокси, который мы настроили в vite.config.ts
 const apiClient = axios.create({
-    baseURL: '/api',
+    baseURL: 'https://api.shulgan-lab.ru/api',
     headers: {
         'Content-Type': 'application/json',
     },
