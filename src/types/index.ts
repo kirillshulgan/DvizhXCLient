@@ -68,6 +68,6 @@ export interface TelegramAuthRequest {
     readonly last_name?: string;
     readonly username?: string;
     readonly photo_url?: string;
-    readonly auth_date: string;
+    readonly auth_date: number;
     readonly hash: string;
 }
