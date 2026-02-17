@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { 
-    Container, Paper, TextField, Button, Typography, Box, Alert, Link 
+    Container, Paper, TextField, Button, Typography, Box, Alert, Link, Divider 
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { AxiosError } from 'axios';
-
+import React from 'react';
+import { TelegramLoginWidget } from '../../components/TelegramLoginWidget';
 import { authService } from '../../api/authService';
 import type { LoginRequest } from '../../types'; 
 
@@ -26,6 +27,28 @@ export const LoginPage = () => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleTelegramResponse = async (telegramUser: any) => {
+        console.log("Telegram User Data:", telegramUser);
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            // Отправляем полученные данные на наш бэкенд
+            const response = await authService.telegramLogin(telegramUser);
+            
+            // Сохраняем токены
+            localStorage.setItem('accessToken', response.accessToken);
+            // Если есть рефреш: localStorage.setItem('refreshToken', response.refreshToken);
+            
+            navigate('/');
+        } catch (err) {
+            console.error('Telegram Login failed', err);
+            setError('Не удалось войти через Telegram. Попробуйте еще раз.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -108,6 +131,21 @@ export const LoginPage = () => {
                         >
                             {isLoading ? 'Вход...' : 'Войти'}
                         </Button>
+
+                        <Divider sx={{ my: 2 }}>ИЛИ</Divider>
+                        
+                        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                            {/* Используем наш компонент */}
+                            <TelegramLoginWidget 
+                                botName="DvizhXAuthBot" // Имя твоего бота
+                                onAuth={handleTelegramResponse}
+                                buttonSize="large"
+                                cornerRadius={5}
+                                requestAccess="write"
+                                usePic={true}
+                            />
+                        </Box>
+
                         <Box sx={{ textAlign: 'center' }}>
                             <Link component={RouterLink} to="/register" variant="body2">
                                 Нет аккаунта? Зарегистрироваться

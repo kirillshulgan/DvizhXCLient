@@ -10,5 +10,14 @@ export const authService = {
     register: async (payload: RegisterRequest): Promise<AuthResponse> => {
         const response = await apiClient.post<AuthResponse>('/auth/register', payload);
         return response.data;
+    },
+
+    telegramLogin: async (telegramData: any) => {
+        // telegramData — это объект, который пришел от виджета (id, hash, auth_date...)
+        // Оборачиваем его в структуру { data: ... }, как ожидает твой Command на бэкенде
+        const payload = { data: telegramData };
+        
+        const response = await apiClient.post('/auth/TelegramAuth', payload);
+        return response.data;
     }
 };

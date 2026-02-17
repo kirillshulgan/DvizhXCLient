@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dvizhx_client
+    restart: always
+    networks:
+      - proxied # Подключаемся к той же сети, где NPM и API
+
+networks:
+  proxied:
+    external: true # Сеть уже создана другим композом (api или npm)
