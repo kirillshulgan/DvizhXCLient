@@ -4,7 +4,7 @@ import {
     Box, Typography, Paper, IconButton, AppBar, Toolbar, Button, 
     Card as MuiCard, CardContent, Chip, Stack,
     Dialog, DialogTitle, DialogContent, DialogActions, TextField,
-    CircularProgress 
+    CircularProgress, useMediaQuery, useTheme
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
@@ -17,7 +17,6 @@ import { eventService } from '../../api/eventService';
 import { signalRService } from '../../api/signalrService';
 import type { Board, Card } from '../../types';
 
-// Интерфейс для формы создания/редактирования
 interface CardFormData {
     id: string;
     title: string;
@@ -27,6 +26,8 @@ interface CardFormData {
 export const BoardPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Проверка на мобилку
     
     const [board, setBoard] = useState<Board | null>(null);
     const [loading, setLoading] = useState(true);
@@ -40,14 +41,10 @@ export const BoardPage = () => {
     const [inviteCode, setInviteCode] = useState<string | null>(null);
 
     // --- Loading Logic ---
-
     const loadBoard = useCallback(async (boardId: string, silent = false) => {
         if (!silent) setLoading(true);
         try {
             const boardData = await kanbanService.getBoard(boardId);
-            
-            // Сортировка (лучше делать на бэке, но ок)
-            // Создаем копию массива, чтобы сортировать (т.к. в типах у нас readonly)
             const sortedColumns = [...boardData.columns].sort((a, b) => a.orderIndex - b.orderIndex).map(col => ({
                 ...col,
                 cards: [...col.cards].sort((a, b) => a.orderIndex - b.orderIndex)
@@ -56,41 +53,33 @@ export const BoardPage = () => {
             setBoard({ ...boardData, columns: sortedColumns });
 
             if (boardData.eventId) {
-                // Пытаемся получить код приглашения, но не блокируем UI ошибкой
                 eventService.getEventById(boardData.eventId)
                     .then(evt => setInviteCode(evt.inviteCode || null))
                     .catch(console.error);
             }
-
         } catch (err) {
             console.error("Failed to load board", err);
-            // Можно добавить редирект или тостер
         } finally {
             if (!silent) setLoading(false);
         }
     }, []);
 
     // --- Effects ---
-
     useEffect(() => {
         if (id) loadBoard(id, false);
     }, [id, loadBoard]);
 
     useEffect(() => {
         if (!board?.eventId) return;
-        const token = localStorage.getItem('accessToken'); // Используем правильный ключ
+        const token = localStorage.getItem('accessToken');
         if (!token) return;
 
         const startSocket = async () => {
             await signalRService.startConnection(token);
             await signalRService.joinEvent(board.eventId);
 
-            // Handler for all card events
             const handleUpdate = () => {
-                if (board.eventId) {
-                    console.log("SignalR update received");
-                    loadBoard(board.eventId, true);
-                }
+                if (board.eventId) loadBoard(board.eventId, true);
             };
 
             signalRService.on('CardMoved', handleUpdate);
@@ -111,9 +100,7 @@ export const BoardPage = () => {
         };
     }, [board?.eventId, board?.id, loadBoard]);
 
-
     // --- Handlers ---
-
     const handleOpenCreateDialog = (columnId: string) => {
         setTargetColumnId(columnId);
         setEditingCardId(null);
@@ -144,8 +131,6 @@ export const BoardPage = () => {
                     description: cardForm.description
                 });
             }
-            
-            // Ждем SignalR или обновляем вручную
             if (id) loadBoard(id, true);
             setDialogOpen(false);
         } catch (error) {
@@ -156,8 +141,6 @@ export const BoardPage = () => {
 
     const handleDeleteCard = async (cardId: string) => {
         if (!confirm('Удалить эту задачу?')) return;
-
-        // Optimistic UI Update (Immutably)
         if (board) {
             const newColumns = board.columns.map(col => ({
                 ...col,
@@ -165,45 +148,32 @@ export const BoardPage = () => {
             }));
             setBoard({ ...board, columns: newColumns });
         }
-
         try {
             await kanbanService.deleteCard(cardId);
         } catch (error) {
             console.error(error);
             alert("Не удалось удалить карточку");
-            if (id) loadBoard(id, true); // Revert
+            if (id) loadBoard(id, true);
         }
     };
 
     const onDragEnd = async (result: DropResult) => {
         const { destination, source, draggableId } = result;
         if (!destination || !board) return;
-        
         if (destination.droppableId === source.droppableId && destination.index === source.index) return;
 
-        // --- Optimistic Update (Immutable way) ---
         const sourceColIndex = board.columns.findIndex(c => c.id === source.droppableId);
         const destColIndex = board.columns.findIndex(c => c.id === destination.droppableId);
-
         if (sourceColIndex === -1 || destColIndex === -1) return;
 
         const newColumns = [...board.columns];
-        
-        // Создаем копии колонок, которые меняем
         const sourceCol = { ...newColumns[sourceColIndex], cards: [...newColumns[sourceColIndex].cards] };
-        
-        // Если колонка та же самая, используем одну ссылку
         const destCol = sourceColIndex === destColIndex 
             ? sourceCol 
             : { ...newColumns[destColIndex], cards: [...newColumns[destColIndex].cards] };
 
-        // Логика перемещения
         const [movedCard] = sourceCol.cards.splice(source.index, 1);
-        
-        // Обновляем columnId у карточки (хотя API это сделает, для UI полезно)
-        // Но так как у нас readonly Card, создаем новый объект карточки
         const updatedCard = { ...movedCard, columnId: destination.droppableId };
-        
         destCol.cards.splice(destination.index, 0, updatedCard);
 
         newColumns[sourceColIndex] = sourceCol;
@@ -211,7 +181,6 @@ export const BoardPage = () => {
 
         setBoard({ ...board, columns: newColumns });
 
-        // --- API Call ---
         try {
             await kanbanService.moveCard({
                 cardId: draggableId,
@@ -220,10 +189,9 @@ export const BoardPage = () => {
             });
         } catch (error) {
             console.error("Move failed", error);
-            if (id) loadBoard(id, true); // Revert
+            if (id) loadBoard(id, true);
         }
     };
-
 
     if (loading) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -240,13 +208,12 @@ export const BoardPage = () => {
                     <IconButton edge="start" onClick={() => navigate('/')} sx={{ mr: 2 }}>
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h6" component="div" sx={{ flexGrow: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {board.title}
                     </Typography>
                     
                     <Button 
                         color="inherit" 
-                        startIcon={<PersonAddIcon />}
                         onClick={() => {
                             if (inviteCode) {
                                 navigator.clipboard.writeText(inviteCode);
@@ -256,15 +223,44 @@ export const BoardPage = () => {
                             }
                         }}
                     >
-                        Пригласить
+                        {isMobile ? <PersonAddIcon /> : "Пригласить"}
                     </Button>
                 </Toolbar>
             </AppBar>
 
             <DragDropContext onDragEnd={onDragEnd}>
-                <Box sx={{ flexGrow: 1, display: 'flex', overflowX: 'auto', p: 3, gap: 3, alignItems: 'flex-start' }}>
+                <Box 
+                    sx={{ 
+                        flexGrow: 1, 
+                        display: 'flex', 
+                        overflowX: 'auto', 
+                        p: isMobile ? 1 : 3, // Меньше отступов на мобилке
+                        gap: isMobile ? 2 : 3, 
+                        alignItems: isMobile ? 'center' : 'flex-start', // По центру
+                        flexDirection: isMobile ? 'column' : 'row', // ВЕРТИКАЛЬНО на мобилке
+                        // --- SNAP SCROLL ДЛЯ МОБИЛОК ---
+                        scrollSnapType: isMobile ? 'x mandatory' : 'none',
+                        '&::-webkit-scrollbar': { height: 8 },
+                        '&::-webkit-scrollbar-thumb': { backgroundColor: '#ccc', borderRadius: 4 }
+                    }}
+                >
                     {board.columns.map(column => (
-                        <Paper key={column.id} elevation={0} sx={{ minWidth: 300, maxWidth: 300, bgcolor: '#ebecf0', p: 2, maxHeight: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
+                        <Paper 
+                            key={column.id} 
+                            elevation={0} 
+                            sx={{ 
+                                // Адаптивная ширина
+                                minWidth: isMobile ? '90vw' : 300, 
+                                // Snap align
+                                scrollSnapAlign: 'center',
+                                bgcolor: '#ebecf0', 
+                                p: 2, 
+                                // Высота на мобилке на весь экран минус хедер
+                                maxHeight: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 100px)', 
+                                display: 'flex', 
+                                flexDirection: 'column' 
+                            }}
+                        >
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
                                 <Typography variant="subtitle1" fontWeight="bold">{column.title}</Typography>
                                 <Chip label={column.cards.length} size="small" />
@@ -274,7 +270,7 @@ export const BoardPage = () => {
                                 {(provided) => (
                                     <Stack 
                                         spacing={1} 
-                                        sx={{ overflowY: 'auto', flexGrow: 1, minHeight: 10 }} 
+                                        sx={{ overflowY: 'auto', flexGrow: 1, minHeight: 100 }} 
                                         ref={provided.innerRef} 
                                         {...provided.droppableProps}
                                     >
@@ -324,7 +320,7 @@ export const BoardPage = () => {
                 </Box>
             </DragDropContext>
 
-            {/* Dialog Component logic kept inline for simplicity, but cleaner */}
+            {/* Dialog Component */}
             <Dialog open={isDialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>{editingCardId ? 'Редактирование' : 'Новая задача'}</DialogTitle>
                 <DialogContent>

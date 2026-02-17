@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <!-- Soft material-like shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.18"/>
+    </filter>
+
+    <!-- Accent gradient (blue → teal) -->
+    <linearGradient id="accent" x1="120" y1="96" x2="392" y2="416" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="512" height="512" rx="120" fill="#F6F7F9"/>
+
+  <!-- Icon mark group -->
+  <g filter="url(#shadow)">
+    <!-- Two rounded ribbons forming X -->
+    <g transform="translate(256 256) rotate(18) translate(-256 -256)">
+      <rect x="132" y="214" width="248" height="84" rx="42" fill="url(#accent)"/>
+      <rect x="214" y="132" width="84" height="248" rx="42" fill="url(#accent)"/>
+    </g>
+
+    <!-- Subtle highlight cut (material minimal depth without 3D) -->
+    <path d="M178 168c38-29 93-40 140-30" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="18" stroke-linecap="round"/>
+
+    <!-- Checkmark integrated on one arm -->
+    <path d="M318 282l-22 24-12-12"
+          fill="none"
+          stroke="#0F172A"
+          stroke-opacity="0.78"
+          stroke-width="14"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+  </g>
+</svg>
