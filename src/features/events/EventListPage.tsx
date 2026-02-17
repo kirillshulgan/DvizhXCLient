@@ -44,6 +44,7 @@ export const EventListPage = () => {
         if (!inviteCode) return;
         try {
             const result = await eventService.joinEvent(inviteCode);
+            console.log(result);
             setJoinDialogOpen(false);
             setInviteCode('');
             // Если сервер вернул ID доски (boardId), можно сразу перейти
