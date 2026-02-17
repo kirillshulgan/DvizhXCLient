@@ -8,7 +8,7 @@ import { AxiosError } from 'axios';
 import React from 'react';
 import { TelegramLoginWidget } from '../../components/TelegramLoginWidget';
 import { authService } from '../../api/authService';
-import type { LoginRequest } from '../../types'; 
+import type { LoginRequest, TelegramAuthRequest } from '../../types'; 
 
 export const LoginPage = () => {
     const [formData, setFormData] = useState<LoginRequest>({
@@ -29,7 +29,7 @@ export const LoginPage = () => {
         }));
     };
 
-    const handleTelegramResponse = async (telegramUser: any) => {
+    const handleTelegramResponse = async (telegramUser: TelegramAuthRequest) => {
         console.log("Telegram User Data:", telegramUser);
         setError(null);
         setIsLoading(true);
@@ -40,7 +40,7 @@ export const LoginPage = () => {
             
             // Сохраняем токены
             localStorage.setItem('accessToken', response.accessToken);
-            // Если есть рефреш: localStorage.setItem('refreshToken', response.refreshToken);
+            localStorage.setItem('refreshToken', response.refreshToken);
             
             navigate('/');
         } catch (err) {

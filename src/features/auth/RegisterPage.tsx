@@ -61,6 +61,7 @@ export const RegisterPage = () => {
             // Логика авто-входа после регистрации
             if (response && response.accessToken) {
                 localStorage.setItem('accessToken', response.accessToken);
+                localStorage.setItem('refreshToken', response.refreshToken);
                 navigate('/'); 
             } else {
                 // Если API требует подтверждения почты и не дает токен сразу

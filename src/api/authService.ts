@@ -1,5 +1,5 @@
 import apiClient from './client';
-import type { AuthResponse, LoginRequest, RegisterRequest } from '../types'; 
+import type { AuthResponse, LoginRequest, RegisterRequest, TelegramAuthRequest } from '../types'; 
 
 export const authService = {
     login: async (payload: LoginRequest): Promise<AuthResponse> => {
@@ -12,12 +12,8 @@ export const authService = {
         return response.data;
     },
 
-    telegramLogin: async (telegramData: any) => {
-        // telegramData — это объект, который пришел от виджета (id, hash, auth_date...)
-        // Оборачиваем его в структуру { data: ... }, как ожидает твой Command на бэкенде
-        const payload = { data: telegramData };
-        
-        const response = await apiClient.post('/auth/TelegramAuth', payload);
+    telegramLogin: async (payload: TelegramAuthRequest) => {
+        const response = await apiClient.post('/auth/telegram', { data: payload });
         return response.data;
     }
 };
