@@ -19,6 +19,7 @@ import type { Board, Card } from '../../types';
 
 // Интерфейс для формы создания/редактирования
 interface CardFormData {
+    id: string;
     title: string;
     description: string;
 }
@@ -34,7 +35,7 @@ export const BoardPage = () => {
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [targetColumnId, setTargetColumnId] = useState<string | null>(null);
     const [editingCardId, setEditingCardId] = useState<string | null>(null);
-    const [cardForm, setCardForm] = useState<CardFormData>({ title: '', description: '' });
+    const [cardForm, setCardForm] = useState<CardFormData>({ id: '', title: '', description: '' });
     
     const [inviteCode, setInviteCode] = useState<string | null>(null);
 
@@ -86,16 +87,16 @@ export const BoardPage = () => {
 
             // Handler for all card events
             const handleUpdate = () => {
-                if (board.id) {
+                if (board.eventId) {
                     console.log("SignalR update received");
-                    loadBoard(board.id, true);
+                    loadBoard(board.eventId, true);
                 }
             };
 
-            signalRService.on('ReceiveCardMoved', handleUpdate);
-            signalRService.on('ReceiveCardCreated', handleUpdate);
-            signalRService.on('ReceiveCardDeleted', handleUpdate);
-            signalRService.on('ReceiveCardUpdated', handleUpdate);
+            signalRService.on('CardMoved', handleUpdate);
+            signalRService.on('CardCreated', handleUpdate);
+            signalRService.on('CardDeleted', handleUpdate);
+            signalRService.on('CardUpdated', handleUpdate);
         };
 
         startSocket();
@@ -103,10 +104,10 @@ export const BoardPage = () => {
         return () => {
             signalRService.leaveEvent(board.eventId);
             signalRService.stopConnection();
-            signalRService.off('ReceiveCardMoved');
-            signalRService.off('ReceiveCardCreated');
-            signalRService.off('ReceiveCardDeleted');
-            signalRService.off('ReceiveCardUpdated');
+            signalRService.off('CardMoved');
+            signalRService.off('CardCreated');
+            signalRService.off('CardDeleted');
+            signalRService.off('CardUpdated');
         };
     }, [board?.eventId, board?.id, loadBoard]);
 
@@ -116,13 +117,13 @@ export const BoardPage = () => {
     const handleOpenCreateDialog = (columnId: string) => {
         setTargetColumnId(columnId);
         setEditingCardId(null);
-        setCardForm({ title: '', description: '' });
+        setCardForm({ id: '', title: '', description: '' });
         setDialogOpen(true);
     };
 
     const handleOpenEditDialog = (card: Card) => {
         setEditingCardId(card.id);
-        setCardForm({ title: card.title, description: card.description });
+        setCardForm({ id: card.id, title: card.title, description: card.description });
         setDialogOpen(true);
     };
 
@@ -130,8 +131,9 @@ export const BoardPage = () => {
         if (!cardForm.title.trim()) return;
 
         try {
-            if (editingCardId) {
-                await kanbanService.updateCard(editingCardId, {
+            if (cardForm.id) {
+                await kanbanService.updateCard(cardForm.id, {
+                    сardId: cardForm.id,
                     title: cardForm.title,
                     description: cardForm.description
                 });

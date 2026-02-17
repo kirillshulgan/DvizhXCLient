@@ -21,13 +21,13 @@ class SignalRService {
 
     public async joinEvent(eventId: string) {
         if (this.connection?.state === signalR.HubConnectionState.Connected) {
-            await this.connection.invoke('JoinEventGroup', eventId);
+            await this.connection.invoke('JoinBoard', eventId);
         }
     }
     
     public async leaveEvent(eventId: string) {
         if (this.connection?.state === signalR.HubConnectionState.Connected) {
-            await this.connection.invoke('LeaveEventGroup', eventId);
+            await this.connection.invoke('LeaveBoard', eventId);
         }
     }
 

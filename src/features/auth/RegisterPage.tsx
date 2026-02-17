@@ -103,7 +103,7 @@ export const RegisterPage = () => {
                             margin="normal"
                             fullWidth
                             label="Имя"
-                            name="firstName" // Исправил на firstName согласно DTO, если нужно userName - верни
+                            name="userName" // Исправил на firstName согласно DTO, если нужно userName - верни
                             value={formData.userName}
                             onChange={handleChange}
                             autoFocus

@@ -57,6 +57,7 @@ export interface MoveCardRequest {
 }
 
 export interface UpdateCardRequest {
+    readonly сardId: string;
     readonly title: string;
     readonly description?: string;
 }
