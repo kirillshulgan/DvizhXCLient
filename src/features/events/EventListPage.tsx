@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { kanbanService } from '../../api/kanbanService';
 import { eventService } from '../../api/eventService';
+// Удаляем импорты firebase, так как это теперь глобально в App.tsx
+// import { requestForToken, onMessageListener } from '../../firebase';
+
+import { toast } from 'react-hot-toast'; // Импортируем для красивых уведомлений об ошибках
 
 // MUI Imports
 import { 
@@ -26,6 +29,8 @@ export const EventListPage = () => {
 
     useEffect(() => {
         loadEvents();
+        // Убрали дублирующую подписку на пуши. 
+        // Она теперь живет в App.tsx и работает на всех страницах.
     }, []);
 
     const loadEvents = async () => {
@@ -34,7 +39,8 @@ export const EventListPage = () => {
             const data = await eventService.getMyEvents();
             setEvents(data);
         } catch (error) {
-            alert(error);
+            console.error(error);
+            toast.error("Не удалось загрузить события"); // Красивая ошибка
         } finally {
             setLoading(false);
         }
@@ -43,17 +49,13 @@ export const EventListPage = () => {
     const handleJoin = async () => {
         if (!inviteCode) return;
         try {
-            const result = await eventService.joinEvent(inviteCode);
-            console.log(result);
+            await eventService.joinEvent(inviteCode);
             setJoinDialogOpen(false);
             setInviteCode('');
-            // Если сервер вернул ID доски (boardId), можно сразу перейти
-            // Но твой бэкенд возвращает EventId. Нам нужно узнать BoardId этого ивента.
-            // Проще всего - просто перезагрузить список событий.
             await loadEvents();
-            alert("Вы успешно вступили!");
+            toast.success("Вы успешно вступили!"); // Красивый успех
         } catch (error) {
-            alert("Неверный код приглашения");
+            toast.error("Неверный код приглашения");
         }
     };
 
@@ -67,8 +69,9 @@ export const EventListPage = () => {
             setOpenDialog(false);
             setNewEvent({ title: '', description: '', date: '', time: '' });
             loadEvents();
+            toast.success("Событие создано!");
         } catch (error) {
-            alert("Ошибка создания");
+            toast.error("Ошибка создания события");
         }
     };
 
@@ -121,26 +124,20 @@ export const EventListPage = () => {
                 )}
             </Container>
 
-            {/* Плавающая кнопка создания */}
             {/* Плавающие кнопки (FABs) */}
             <Box sx={{ position: 'fixed', bottom: 30, right: 30, display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
                 
-                {/* Кнопка 1: Вступить (с подписью при наведении) */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    {/* (Опционально) Можно добавить Tooltip, но пока просто кнопка */}
-                    <Fab 
-                        color="secondary" 
-                        aria-label="join" 
-                        size="medium"
-                        onClick={() => setJoinDialogOpen(true)}
-                        variant="extended" // Чтобы было место для текста, если захочешь
-                    >
-                        <GroupAddIcon sx={{ mr: 1 }} />
-                        Вступить
-                    </Fab>
-                </Box>
+                <Fab 
+                    color="secondary" 
+                    aria-label="join" 
+                    size="medium"
+                    onClick={() => setJoinDialogOpen(true)}
+                    variant="extended"
+                >
+                    <GroupAddIcon sx={{ mr: 1 }} />
+                    Вступить
+                </Fab>
 
-                {/* Кнопка 2: Создать (Главная) */}
                 <Fab 
                     color="primary" 
                     aria-label="add" 
@@ -152,7 +149,7 @@ export const EventListPage = () => {
                 </Fab>
             </Box>
 
-            {/* Модальное окно создания */}
+            {/* Модальные окна (без изменений, кроме использования toast внутри функций) */}
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
                 <DialogTitle>Новая тусовка</DialogTitle>
                 <DialogContent>
@@ -199,6 +196,7 @@ export const EventListPage = () => {
                     <Button onClick={handleCreate} variant="contained">Создать</Button>
                 </DialogActions>
             </Dialog>
+
             <Dialog open={joinDialogOpen} onClose={() => setJoinDialogOpen(false)}>
                 <DialogTitle>Вступить в тусовку</DialogTitle>
                 <DialogContent>

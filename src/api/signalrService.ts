@@ -5,7 +5,8 @@ class SignalRService {
 
     public async startConnection(token: string) {
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl('https://api.shulgan-lab.ru/hubs/kanban', { // Vite проксирует /hubs -> backend
+            // .withUrl('http://localhost:5000/hubs/kanban', { // Vite проксирует /hubs -> backend
+            .withUrl('https://api.shulgan-lab.ru/hubs/kanban', { 
                 accessTokenFactory: () => token
             })
             .withAutomaticReconnect()

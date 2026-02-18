@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 
 // Создаем тему (аналог ResourceDictionary в WPF)
@@ -25,7 +26,9 @@ createRoot(document.getElementById('root')!).render(
     <ThemeProvider theme={theme}>
       {/* CssBaseline: нормализация стилей (reset.css) */}
       <CssBaseline />
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,
 );

@@ -46,11 +46,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://api.shulgan-lab.ru', // Убедись, что твой API запускается на этом порту (http)
+        // target: 'http://localhost:5000',
+        target: 'https://api.shulgan-lab.ru', 
         changeOrigin: true,
         secure: false,
       },
       '/hubs': { // Для SignalR
+        // target: 'http://localhost:5000',
         target: 'https://api.shulgan-lab.ru',
         changeOrigin: true,
         secure: false,

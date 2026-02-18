@@ -4,6 +4,7 @@ import type { AuthResponse, LoginRequest, RegisterRequest, TelegramAuthRequest }
 export const authService = {
     login: async (payload: LoginRequest): Promise<AuthResponse> => {
         const response = await apiClient.post<AuthResponse>('/auth/login', payload);
+        console.log(response);
         return response.data;
     },
 
