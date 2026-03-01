@@ -6,8 +6,10 @@ import { BoardPage } from './features/kanban/BoardPage';
 import { EventListPage } from './features/events/EventListPage';
 import { Toaster, toast } from 'react-hot-toast';
 import { requestForToken, onMessageListener } from './firebase'; 
+import ym, { YMInitializer } from 'react-yandex-metrika'; // 👈 добавить
 
 const ACCESS_TOKEN_KEY = 'accessToken';
+const YM_ID = 107061002;
 
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -19,6 +21,11 @@ function App() {
     // Используем ref, чтобы хранить состояние инициализации
     const isNotificationInitialized = useRef(false);
     const location = useLocation();
+
+    // 👇 Отправляем hit при каждой смене роута
+    useEffect(() => {
+        ym('hit', window.location.href);
+    }, [location.pathname]);
 
     useEffect(() => {
         const token = localStorage.getItem(ACCESS_TOKEN_KEY);
@@ -141,6 +148,18 @@ function App() {
 
     return (
         <>
+            {/* 👇 Добавляем инициализатор */}
+            <YMInitializer
+                accounts={[YM_ID]}
+                options={{
+                    defer: true,         // обязательно для SPA
+                    clickmap: true,
+                    trackLinks: true,
+                    accurateTrackBounce: true,
+                    webvisor: true,      // вебвизор (запись сессий)
+                }}
+                version="2"
+            />
             <Toaster
                 position="top-right"
                 reverseOrder={false}
