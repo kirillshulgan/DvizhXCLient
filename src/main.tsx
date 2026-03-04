@@ -2,18 +2,17 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from 'react-oidc-context';
 import App from './App';
 
-// Создаем тему (аналог ResourceDictionary в WPF)
-// Можно вынести в отдельный файл src/theme.ts
 const theme = createTheme({
   palette: {
-    mode: 'light', // Или 'dark'
+    mode: 'light',
     primary: {
       main: '#1976d2',
     },
     background: {
-      default: '#f4f5f7', // Цвет фона как в Trello/Jira
+      default: '#f4f5f7',
     }
   },
   typography: {
@@ -21,13 +20,25 @@ const theme = createTheme({
   }
 });
 
+const telegramOidcConfig = {
+    authority: 'https://oauth.telegram.org',
+    client_id: '8423941037',           // числовой Bot ID из BotFather
+    client_secret: 'AAFkZqTd6OK87_Q9xJnfyYZldBQlV2EvP68',     // Client Secret из BotFather
+    redirect_uri: `${window.location.origin}/auth/callback`,
+    response_type: 'code',
+    scope: 'openid profile',          // phone — только если реально нужен
+    loadUserInfo: false,
+    automaticSilentRenew: false,
+};
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
-      {/* CssBaseline: нормализация стилей (reset.css) */}
       <CssBaseline />
       <BrowserRouter>
-        <App />
+        <AuthProvider {...telegramOidcConfig}>  {/* ← добавлено */}
+          <App />
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   </StrictMode>,

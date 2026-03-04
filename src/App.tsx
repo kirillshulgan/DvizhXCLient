@@ -7,6 +7,7 @@ import { EventListPage } from './features/events/EventListPage';
 import { Toaster, toast } from 'react-hot-toast';
 import { requestForToken, onMessageListener } from './firebase'; 
 import ym, { YMInitializer } from 'react-yandex-metrika'; // 👈 добавить
+import { AuthCallbackPage } from './features/auth/AuthCallbackPage';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
 const YM_ID = 107061002;
@@ -180,6 +181,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />  {/* ← добавить */}
                 <Route path="/" element={<PrivateRoute><EventListPage /></PrivateRoute>} />
                 <Route path="/board/:id" element={<PrivateRoute><BoardPage /></PrivateRoute>} />
                 <Route path="*" element={<Navigate to="/" replace />} />

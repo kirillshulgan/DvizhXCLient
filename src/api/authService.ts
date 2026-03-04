@@ -13,8 +13,9 @@ export const authService = {
         return response.data;
     },
 
-    telegramLogin: async (payload: TelegramAuthRequest) => {
-        const response = await apiClient.post('/auth/telegram', { data: payload });
+    telegramLogin: async (payload: TelegramAuthRequest): Promise<AuthResponse> => {
+        // Было: { data: payload } — это оборачивало тело в лишний ключ "data"!
+        const response = await apiClient.post<AuthResponse>('/auth/telegram', { data: payload });
         return response.data;
     }
 };
